@@ -20,11 +20,12 @@ permissions:
 
 jobs:
   gitleaks:
-    # Private repos run on the org's self-hosted runners (the DF_RUNS_ON*
-    # variables are shared only with private repos). A public repo has no such
-    # variable and falls back to GitHub-hosted, which keeps pull-request code
-    # from forks off self-hosted runners.
-    runs-on: ${{ fromJSON(vars.DF_RUNS_ON_FAST || vars.DF_RUNS_ON || '"ubuntu-latest"') }}
+    # Private repos queue on the org's self-hosted runners (the DF_RUNS_ON*
+    # variables are shared only with private repos) and never fall back to
+    # hosted minutes unless DF_OVERFLOW_HOSTED is 'true'. Public repos stay
+    # GitHub-hosted: free, and it keeps pull-request code from forks off
+    # self-hosted runners.
+    runs-on: ${{ fromJSON(github.event.repository.private && (vars.DF_RUNS_ON_FAST || vars.DF_RUNS_ON || (vars.DF_OVERFLOW_HOSTED == 'true' && '"ubuntu-latest"') || '"df-runner-var-missing"') || '"ubuntu-latest"') }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
